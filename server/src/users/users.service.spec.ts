@@ -15,4 +15,16 @@ describe('UsersService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  it('should create a user', async () => {
+    const userData = {
+      email: "test@example.com",
+      password: "password123",
+      name: "Test User"
+    };
+    const user = await service.create(userData);
+    expect(user).toHaveProperty('id');
+    expect(user.email).toBe(userData.email);
+    expect(user.name).toBe(userData.name);
+  });
 });

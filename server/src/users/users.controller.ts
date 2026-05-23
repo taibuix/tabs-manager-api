@@ -1,16 +1,15 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { type UserCreateInput } from '../generated/prisma/models';
+import { Prisma } from '../generated/prisma/client';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  async createUser(@Body() data: UserCreateInput) {
-    console.log('Creating user with data:', data);
-    return this.usersService.createUser(data);
+  async create(@Body() data: Prisma.UserCreateInput) {
+    return this.usersService.create(data);
   }
 
   @Get()
