@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { hashPassword } from './helper';
@@ -10,9 +10,19 @@ export class UsersService {
 
   async create(data: Prisma.UserCreateInput): Promise<User> {
     data.password = await hashPassword(data.password);
-    return this.prisma.user.create({
-      data,
-    });
+    try {
+      const user = await this.prisma.user.create({
+        data,
+      });
+      return user;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException('Email already exists');
+        }
+    }
+      throw error;
+    }
   }
 
   async findAll() {
