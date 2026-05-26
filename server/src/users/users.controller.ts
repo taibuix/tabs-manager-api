@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpException, NotFoundException, Put, ConflictException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma } from '../generated/prisma/client';
@@ -9,8 +9,15 @@ export class UsersController {
 
   @Post()
   async create(@Body() data: Prisma.UserCreateInput) {
-    const user = await this.usersService.create(data);
-    return user;
+    try {
+      const user = await this.usersService.create(data);
+      return user;
+    } catch (error: any) {
+      if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      }
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   @Get()
@@ -24,20 +31,43 @@ export class UsersController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const user = await this.usersService.findOne(id);
-    if (!user) {
-      console.warn(`User with id ${id} not found.`);
+    try {
+      const user = await this.usersService.findOne(id);
+      return user;
+    } catch (error: any) {
+
+      throw error instanceof NotFoundException
+        ? error
+        : new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
-    return user;
   }
 
-  @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return await this.usersService.update(id, updateUserDto);
+  @Put(':id')
+  async update(
+    @Param('id') id: string, 
+    @Body() updateUserDto: UpdateUserDto
+  ) {
+    try {
+      const updatedUser = await this.usersService.update(id, updateUserDto);
+      return updatedUser;
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return await this.usersService.remove(id);
+    try{
+      await this.usersService.remove(id);
+    } catch (error: any) {
+        throw error instanceof NotFoundException
+          ? error
+          : new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 }
+
+
