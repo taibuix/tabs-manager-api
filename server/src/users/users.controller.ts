@@ -1,14 +1,26 @@
-import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpException, NotFoundException, Put, ConflictException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  HttpStatus,
+  HttpException,
+  NotFoundException,
+  Put,
+  ConflictException,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Prisma } from '../generated/prisma/client';
+import { type UserCreateInput } from '../generated/prisma/models';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  async create(@Body() data: Prisma.UserCreateInput) {
+  async create(@Body() data: UserCreateInput) {
     try {
       const user = await this.usersService.create(data);
       return user;
@@ -35,7 +47,6 @@ export class UsersController {
       const user = await this.usersService.findOne(id);
       return user;
     } catch (error: any) {
-
       throw error instanceof NotFoundException
         ? error
         : new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -43,10 +54,7 @@ export class UsersController {
   }
 
   @Put(':id')
-  async update(
-    @Param('id') id: string, 
-    @Body() updateUserDto: UpdateUserDto
-  ) {
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     try {
       const updatedUser = await this.usersService.update(id, updateUserDto);
       return updatedUser;
@@ -54,20 +62,18 @@ export class UsersController {
       if (error instanceof NotFoundException) {
         throw error;
       }
-        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    try{
+    try {
       await this.usersService.remove(id);
     } catch (error: any) {
-        throw error instanceof NotFoundException
-          ? error
-          : new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw error instanceof NotFoundException
+        ? error
+        : new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 }
-
-
