@@ -9,13 +9,21 @@ export class SessionsService {
     constructor(private prisma: PrismaService) { }
 
     create(createSessionDto: CreateSessionDto) {
-        const session = this.prisma.session.create({
-            data: {
-                name: createSessionDto.name ?? '',
-                userId: createSessionDto.userId,
-            },
-        });
-        return session;
+        try {
+            const session = this.prisma.session.create({
+                data: {
+                    name: createSessionDto.name ?? '',
+                    userId: createSessionDto.userId,
+                },
+            });
+            return session;
+        }
+        catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError &&
+                error.code === 'P2025') {
+                    
+            }
+        }
     }
 
     async findAll() {
