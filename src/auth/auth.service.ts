@@ -1,71 +1,22 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
-import { JwtService } from '@nestjs/jwt';
-import { RegisterDto } from './dto/register.dto';
-import bcrypt from 'bcrypt'
-import { LoginDto } from './dto/login.dto';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { UsersService } from '../modules/users/users.service';
+import { comparePassword } from '../modules/users/helper';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private readonly usersService: UsersService,
-        private readonly jwtService: JwtService
-    ) { }
+    constructor(private readonly usersService: UsersService) { }
 
-    async register(dto: RegisterDto) {
-        const existingUser = await this.usersService.findByEmail(dto.email);
-
-        if (existingUser) {
-            throw new BadRequestException(
-                'Email already in use',
-            );
-        }
-
-        const user = await this.usersService.create({
-            ...dto,
-            password: dto.password,
-        });
-
-        return {
-            id: user.id,
-            email: user.email,
-            username: user.name,
-        };
-    }
-
-    async login(dto: LoginDto) {
-        const user = await this.usersService.findByEmail(
-            dto.email,
-        );
-
+    async signIn(email: string, pass: string): Promise<any> {
+        const user = await this.usersService.findByEmail(email);
         if (!user) {
-            throw new UnauthorizedException(
-                'Invalid credentials',
-            );
+            throw new NotFoundException()
         }
-
-        const passwordValid =
-            await bcrypt.compare(
-                dto.password,
-                user.password,
-            );
-
-        if (!passwordValid) {
-            throw new UnauthorizedException(
-                'Invalid credentials',
-            );
+        if (await comparePassword(user.password, pass)) {
+            throw new UnauthorizedException();
         }
-
-        const payload = {
-            sub: user.id,
-            email: user.email,
-        };
-
-        return {
-            access_token:
-                await this.jwtService.signAsync(
-                    payload,
-                ),
-        };
+        const { password, ...result } = user;
+        // TODO: Generate a JWT and return it here
+        // instead of the user object
+        return result;
     }
 }

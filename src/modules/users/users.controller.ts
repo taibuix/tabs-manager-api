@@ -23,6 +23,7 @@ export class UsersController {
     async create(@Body() data: CreateUserDto) {
         try {
             const user = await this.usersService.create(data);
+            console.log(user)
             return user;
         } catch (error: any) {
             if (error instanceof ConflictException) {
