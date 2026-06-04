@@ -41,9 +41,13 @@ export class UsersService {
     }
 
     async findByEmail(email: string) {
-        return this.prisma.user.findUnique({
+        const user = this.prisma.user.findUnique({
             where: { email }
         })
+        if (!user || typeof user === "undefined") {
+            throw new NotFoundException(`User with email ${email} not found`)
+        }
+        return user
     }
 
     async update(id: string, updateUserDto: UpdateUserDto) {
