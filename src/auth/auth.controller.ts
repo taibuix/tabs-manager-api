@@ -1,23 +1,35 @@
-import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
+import {
+	Controller,
+	Post,
+	Body,
+	UseGuards,
+	Request,
+	Get,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './passport/local-auth.guard';
-import { JwtAuthGuard } from './passport/jwt-auth.guard';
 import { IsPublic } from '../decorators/custom';
+import { CreateAuthDto } from './dto/create-auth.dto';
+import { type Request as ExpressRequest } from 'express';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+	constructor(private readonly authService: AuthService) {}
 
+	@Post('login')
+	@UseGuards(LocalAuthGuard)
+	@IsPublic()
+	async login(@Request() req: ExpressRequest) {
+		return this.authService.login(req.user);
+	}
 
-    @Post("login")
-    @UseGuards(LocalAuthGuard)
-    @IsPublic()
-    async handleLogin(@Request() req) {
-        return this.authService.login(req.user);
-    }
+	@Post('register')
+	async register(@Body() registerDTO: CreateAuthDto) {
+		return this.authService.register(registerDTO);
+	}
 
-    @Get('profile')
-    async getProfile(@Request() req) {
-        return req.user;
-    }
+	@Get('profile')
+	getProfile(@Request() req: ExpressRequest) {
+		return req.user;
+	}
 }
