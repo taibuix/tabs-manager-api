@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { hashPassword } from './helper';
 import { Prisma, User } from '../../generated/prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
+import { IsPublic } from '../../decorators/custom';
 
 @Injectable()
 export class UsersService {
@@ -30,6 +31,7 @@ export class UsersService {
         return await this.prisma.user.findMany();
     }
 
+    @IsPublic()
     async findOne(id: string) {
         const user = await this.prisma.user.findUnique({
             where: { id },
