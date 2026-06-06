@@ -9,8 +9,9 @@ import { hashPassword } from './helper';
 import { Prisma, User } from '../../generated/prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { IsPublic } from '../../decorators/custom';
-import { CreateAuthDto } from '../../auth/dto/create-auth.dto';
-
+import { CreateAuthDto } from '../../auth/dto/register-auth.dto';
+import { v4 as uuidv4 } from 'uuid';
+import dayjs from 'dayjs';
 @Injectable()
 export class UsersService {
 	constructor(private prisma: PrismaService) {}
@@ -22,7 +23,7 @@ export class UsersService {
 				data,
 			});
 			return user;
-		} catch (error) {
+		} catch (error: any) {
 			if (error instanceof Prisma.PrismaClientKnownRequestError) {
 				if (error.code === 'P2002') {
 					throw new ConflictException(
@@ -66,7 +67,7 @@ export class UsersService {
 				data: updateUserDto,
 			});
 			return updatedUser;
-		} catch (error) {
+		} catch (error: any) {
 			if (
 				error instanceof Prisma.PrismaClientKnownRequestError &&
 				error.code === 'P2025'
@@ -89,6 +90,9 @@ export class UsersService {
 
 	async handleRegister(registerDTO: CreateAuthDto) {
 		registerDTO.password = await hashPassword(registerDTO.password);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+		const codeId: string = uuidv4();
+		const codeExpired = dayjs().add(1, 'day').toDate();
 		const { email, password, name } = registerDTO;
 		try {
 			const user = await this.prisma.user.create({
@@ -96,10 +100,12 @@ export class UsersService {
 					email,
 					password,
 					name,
+					codeId,
+					codeExpired,
 				},
 			});
 			return user;
-		} catch (error) {
+		} catch (error: any) {
 			if (error instanceof Prisma.PrismaClientKnownRequestError) {
 				if (error.code === 'P2002') {
 					throw new ConflictException(
