@@ -39,8 +39,8 @@ export class AuthController {
 		await this.mailerService.sendMail({
 			to: 'taibui97@outlook.com',
 			subject: 'Welcome!',
-			template: 'welcome',
-			context: { name: 'tai' },
+			template: 'register',
+			context: { name: 'tai', activationCode: '123' },
 		});
 		return 'ok';
 	}

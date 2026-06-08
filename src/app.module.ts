@@ -9,6 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
 
 @Module({
 	imports: [
@@ -35,9 +36,13 @@ import { ConfigService } from '@nestjs/config';
 				defaults: {
 					from: '"No Reply" <noreply@example.com>',
 				},
-				// template: {
-				// 	adapter: new HandlebarsAdapter(),
-				// },
+				template: {
+					dir: process.cwd() + '/src/mail/templates',
+					adapter: new HandlebarsAdapter(),
+					options: {
+						strict: true,
+					},
+				},
 			}),
 			inject: [ConfigService],
 		}),

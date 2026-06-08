@@ -12,9 +12,13 @@ import { IsPublic } from '../../decorators/custom';
 import { CreateAuthDto } from '../../auth/dto/register-auth.dto';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
+import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class UsersService {
-	constructor(private prisma: PrismaService) {}
+	constructor(
+		private prisma: PrismaService,
+		private readonly mailerService: MailerService,
+	) {}
 
 	async create(data: CreateUserDto): Promise<User> {
 		data.password = await hashPassword(data.password);
@@ -90,7 +94,7 @@ export class UsersService {
 
 	async handleRegister(registerDTO: CreateAuthDto) {
 		registerDTO.password = await hashPassword(registerDTO.password);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+
 		const codeId: string = uuidv4();
 		const codeExpired = dayjs().add(1, 'day').toDate();
 		const { email, password, name } = registerDTO;
@@ -102,6 +106,15 @@ export class UsersService {
 					name,
 					codeId,
 					codeExpired,
+				},
+			});
+			await this.mailerService.sendMail({
+				to: user.email,
+				subject: 'Activate your account!',
+				template: 'register',
+				context: {
+					name: user?.name ?? user.email,
+					activationCode: user.codeId,
 				},
 			});
 			return user;

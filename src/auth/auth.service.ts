@@ -34,7 +34,7 @@ export class AuthService {
 		};
 	}
 
-	async register(registerDto: CreateAuthDto) {
+	register(registerDto: CreateAuthDto) {
 		return this.usersService.handleRegister(registerDto);
 	}
 }
