@@ -2,6 +2,7 @@ import {
 	ConflictException,
 	Injectable,
 	NotFoundException,
+	UnauthorizedException,
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -9,7 +10,7 @@ import { hashPassword } from './helper';
 import { Prisma, User } from '../../generated/prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { IsPublic } from '../../decorators/custom';
-import { CreateAuthDto } from '../../auth/dto/register-auth.dto';
+import { CodeAuthDto, CreateAuthDto } from '../../auth/dto/register-auth.dto';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 import { MailerService } from '@nestjs-modules/mailer';
@@ -96,7 +97,7 @@ export class UsersService {
 		registerDTO.password = await hashPassword(registerDTO.password);
 
 		const codeId: string = uuidv4();
-		const codeExpired = dayjs().add(1, 'day').toDate();
+		const codeExpired = dayjs().add(5, 'minute').toDate();
 		const { email, password, name } = registerDTO;
 		try {
 			const user = await this.prisma.user.create({
@@ -114,7 +115,7 @@ export class UsersService {
 				template: 'register',
 				context: {
 					name: user?.name ?? user.email,
-					activationCode: user.codeId,
+					activationCode: codeId,
 				},
 			});
 			return user;
@@ -128,5 +129,20 @@ export class UsersService {
 			}
 			throw error;
 		}
+	}
+
+	async handleCheckCode(authCodeDto: CodeAuthDto) {
+		const user = await this.findOne(authCodeDto.id);
+		if (!user) {
+			throw new NotFoundException('User not found');
+		}
+		if (authCodeDto.code === user.codeId) {
+			const updatedUser = await this.prisma.user.update({
+				where: { id: user.id },
+				data: { isActive: true },
+			});
+			return updatedUser;
+		}
+		throw new UnauthorizedException('Verification code does not match');
 	}
 }

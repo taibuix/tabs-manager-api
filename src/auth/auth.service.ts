@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UsersService } from '../modules/users/users.service';
 import { comparePassword } from '../modules/users/helper';
 import { JwtService } from '@nestjs/jwt';
-import { CreateAuthDto } from './dto/register-auth.dto';
+import { CodeAuthDto, CreateAuthDto } from './dto/register-auth.dto';
 import { AuthUser } from './interfaces/auth-user.interface';
 import { User } from '../generated/prisma/client';
 
@@ -36,5 +36,9 @@ export class AuthService {
 
 	register(registerDto: CreateAuthDto) {
 		return this.usersService.handleRegister(registerDto);
+	}
+
+	checkCode(registerDto: CodeAuthDto) {
+		return this.usersService.handleCheckCode(registerDto);
 	}
 }

@@ -25,11 +25,13 @@ export class UsersController {
 			const user = await this.usersService.create(data);
 			console.log(user);
 			return user;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			if (error instanceof ConflictException) {
 				throw new HttpException(error.message, HttpStatus.CONFLICT);
 			}
-			throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+			const message =
+				error instanceof Error ? error.message : 'Bad Request';
+			throw new HttpException(message, HttpStatus.BAD_REQUEST);
 		}
 	}
 
@@ -47,10 +49,11 @@ export class UsersController {
 		try {
 			const user = await this.usersService.findOne(id);
 			return user;
-		} catch (error: any) {
-			throw error instanceof NotFoundException
-				? error
-				: new HttpException(error.message, HttpStatus.BAD_REQUEST);
+		} catch (error: unknown) {
+			if (error instanceof NotFoundException) return error;
+			const message =
+				error instanceof Error ? error.message : 'Bad Request';
+			throw new HttpException(message, HttpStatus.BAD_REQUEST);
 		}
 	}
 
@@ -65,11 +68,13 @@ export class UsersController {
 				updateUserDto,
 			);
 			return updatedUser;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			if (error instanceof NotFoundException) {
 				throw error;
 			}
-			throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+			const message =
+				error instanceof Error ? error.message : 'Bad Request';
+			throw new HttpException(message, HttpStatus.BAD_REQUEST);
 		}
 	}
 
@@ -77,10 +82,11 @@ export class UsersController {
 	async remove(@Param('id') id: string) {
 		try {
 			await this.usersService.remove(id);
-		} catch (error: any) {
-			throw error instanceof NotFoundException
-				? error
-				: new HttpException(error.message, HttpStatus.BAD_REQUEST);
+		} catch (error: unknown) {
+			if (error instanceof NotFoundException) return error;
+			const message =
+				error instanceof Error ? error.message : 'Bad Request';
+			throw new HttpException(message, HttpStatus.BAD_REQUEST);
 		}
 	}
 }

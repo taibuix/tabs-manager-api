@@ -9,7 +9,7 @@ import {
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './passport/local-auth.guard';
 import { IsPublic } from '../decorators/custom';
-import { CreateAuthDto } from './dto/register-auth.dto';
+import { CodeAuthDto, CreateAuthDto } from './dto/register-auth.dto';
 import { type AuthenticatedRequest } from './interfaces/authenticated-request.interface';
 import { MailerService } from '@nestjs-modules/mailer';
 
@@ -48,5 +48,11 @@ export class AuthController {
 	@Get('profile')
 	getProfile(@Request() req: AuthenticatedRequest) {
 		return req.user;
+	}
+
+	@Post('check-code')
+	@IsPublic()
+	checkCode(@Body() registerDto: CodeAuthDto) {
+		return this.authService.checkCode(registerDto);
 	}
 }
