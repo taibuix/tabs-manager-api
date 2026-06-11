@@ -55,4 +55,10 @@ export class AuthController {
 	checkCode(@Body() registerDto: CodeAuthDto) {
 		return this.authService.checkCode(registerDto);
 	}
+
+	@Post('retry-active')
+	@IsPublic()
+	async retryActive(@Body('email') email: string) {
+		return await this.authService.retryActive(email);
+	}
 }

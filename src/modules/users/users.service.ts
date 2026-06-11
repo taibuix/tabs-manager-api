@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	ConflictException,
 	Injectable,
 	NotFoundException,
@@ -144,5 +145,29 @@ export class UsersService {
 			return updatedUser;
 		}
 		throw new UnauthorizedException('Verification code does not match');
+	}
+
+	async retryActive(email: string) {
+		const user = await this.findByEmail(email);
+
+		if (!user) {
+			throw new BadRequestException('Account does not exist!');
+		}
+		if (user.isActive) {
+			throw new BadRequestException('Account is activated');
+		}
+		// send email
+		const codeId = uuidv4();
+		await this.update(user.id, { codeId });
+		await this.mailerService.sendMail({
+			to: user.email,
+			subject: 'Activate your account!',
+			template: 'register',
+			context: {
+				name: user?.name ?? user.email,
+				activationCode: codeId,
+			},
+		});
+		return { id: user.id };
 	}
 }
