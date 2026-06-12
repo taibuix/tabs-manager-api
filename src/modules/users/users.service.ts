@@ -170,4 +170,28 @@ export class UsersService {
 		});
 		return { id: user.id };
 	}
+
+	async resetPassword(email: string) {
+		const user = await this.findByEmail(email);
+		if (!user) {
+			throw new BadRequestException('User not found');
+		}
+		const codeId = uuidv4();
+		await this.update(user.id, {
+			codeId,
+			codeExpired: dayjs().add(5, 'm').toDate(),
+		});
+
+		await this.mailerService.sendMail({
+			to: user.email,
+			subject: 'Reset your password!',
+			template: 'register',
+			context: {
+				name: user?.name ?? user.email,
+				activationCode: codeId,
+			},
+		});
+
+		return { id: user.id, email: user.email };
+	}
 }
