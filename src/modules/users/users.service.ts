@@ -15,6 +15,7 @@ import { CodeAuthDto, CreateAuthDto } from '../../auth/dto/register-auth.dto';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 import { MailerService } from '@nestjs-modules/mailer';
+import { ChangePasswordAuthDto } from '../../auth/dto/login-auth.dto';
 @Injectable()
 export class UsersService {
 	constructor(
@@ -171,7 +172,7 @@ export class UsersService {
 		return { id: user.id };
 	}
 
-	async resetPassword(email: string) {
+	async retryPassword(email: string) {
 		const user = await this.findByEmail(email);
 		if (!user) {
 			throw new BadRequestException('User not found');
@@ -193,5 +194,24 @@ export class UsersService {
 		});
 
 		return { id: user.id, email: user.email };
+	}
+
+	async changePassword(data: ChangePasswordAuthDto) {
+		if (data.confirmPassword !== data.password) {
+			throw new BadRequestException('Password is not correct');
+		}
+		const user = await this.findByEmail(data.email);
+		if (!user) {
+			throw new BadRequestException('Account does not exist');
+		}
+
+		const isBeforeCheck = dayjs().isBefore(user.codeExpired);
+		if (isBeforeCheck) {
+			const newPassword = await hashPassword(data.password);
+			await this.update(data.id, { password: newPassword });
+			return { isBeforeCheck };
+		} else {
+			throw new BadRequestException('code is not valid or expired');
+		}
 	}
 }
