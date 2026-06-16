@@ -10,6 +10,9 @@ import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
+import { MessagesModule } from './messages/messages.module';
+import { GroupModule } from './group/group.module';
+import { GroupsModule } from './groups/groups.module';
 
 @Module({
 	imports: [
@@ -46,6 +49,9 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.ad
 			}),
 			inject: [ConfigService],
 		}),
+		MessagesModule,
+		GroupModule,
+		GroupsModule,
 	],
 	controllers: [AppController],
 	providers: [
