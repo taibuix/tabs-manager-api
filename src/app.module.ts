@@ -11,7 +11,6 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
 import { MessagesModule } from './messages/messages.module';
-import { GroupModule } from './group/group.module';
 import { GroupsModule } from './groups/groups.module';
 
 @Module({
@@ -50,7 +49,6 @@ import { GroupsModule } from './groups/groups.module';
 			inject: [ConfigService],
 		}),
 		MessagesModule,
-		GroupModule,
 		GroupsModule,
 	],
 	controllers: [AppController],
