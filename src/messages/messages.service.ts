@@ -1,26 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import {
+	ConflictException,
+	Injectable,
+	InternalServerErrorException,
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { UpdateMessageDto } from './dto/update-message.dto';
+import { Prisma } from '../generated/prisma/client';
 
 @Injectable()
 export class MessagesService {
-	create(createMessageDto: CreateMessageDto) {
-		return 'This action adds a new message';
+	constructor(private readonly prisma: PrismaService) {}
+
+	async create(dto: CreateMessageDto) {
+		try {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+			return await this.prisma.message.create({
+				data: dto,
+			});
+		} catch (error) {
+			if (
+				error instanceof Prisma.PrismaClientKnownRequestError &&
+				error.code === 'P2002'
+			) {
+				throw new ConflictException('Message already exists');
+			}
+
+			throw new InternalServerErrorException('Failed to create message');
+		}
 	}
 
-	findAll() {
-		return `This action returns all messages`;
-	}
-
-	findOne(id: number) {
-		return `This action returns a #${id} message`;
-	}
-
-	update(id: number, updateMessageDto: UpdateMessageDto) {
-		return `This action updates a #${id} message`;
-	}
-
-	remove(id: number) {
-		return `This action removes a #${id} message`;
+	async findOne(id: string) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+		const message = await this.prisma.message.findUnique({
+			where: {
+				id,
+			},
+		});
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return message;
 	}
 }
